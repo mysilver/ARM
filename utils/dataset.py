@@ -67,10 +67,14 @@ def merge_by_tweet_id(tweets_dictionary, tsv_scores):
     return tweets_dictionary
 
 
+def read_and_marge(tweet_xml, tweet_tsv):
+    tweet_dict = tweet_xml_reader(tweet_xml, True)
+    tweet_tsv = read_tsv(tweet_tsv)
+
+    return merge_by_tweet_id(tweet_dict, tweet_tsv)
+
 if __name__ == '__main__':
     # This is only for testing
-    tweet_dict = tweet_xml_reader("../data/tweets-sample.xml", True)
-    tweet_tsv = read_tsv("../data/tweets-sample.tsv")
 
-    tweet_dict = merge_by_tweet_id(tweet_dict, tweet_tsv)
+    tweet_dict = read_and_marge("../data/tweets-sample.xml", "../data/tweets-sample.tsv")
     print(tweet_dict)

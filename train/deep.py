@@ -8,7 +8,6 @@ from keras.layers import Dense
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.metrics import confusion_matrix
 
-from utils.dataset import read_paraphrased_tsv_files
 from utils.preprocess import normalize
 
 
