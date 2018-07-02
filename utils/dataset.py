@@ -32,14 +32,14 @@ def tweet_xml_reader(file, dictionary=False):
     else:
         ret = []
     for atype in e.findall('Tweet'):
-        id = atype.find('TweetID').text
-        text = atype.find('TweetText').text
-        time = atype.find('TweetTimeStamp').text
-        location = atype.find('TweetLocation').text
-        userid = atype.find('UserID').text
-        friends = atype.find('UserFriendsCount').text
-        followers = atype.find('UserFollowersCount').text
-        favorites = atype.find('UserFavoritesCount').text
+        id = atype.find('TweetID').text.strip()
+        text = atype.find('TweetText').text.strip()
+        time = atype.find('TweetTimeStamp').text.strip()
+        location = atype.find('TweetLocation').text.strip()
+        userid = atype.find('UserID').text.strip()
+        friends = int(atype.find('UserFriendsCount').text.strip())
+        followers = int(atype.find('UserFollowersCount').text.strip())
+        favorites = int(atype.find('UserFavoritesCount').text.strip())
         tweet = Tweet(id=id, user_id=userid, timestamp=time, location=location, text=text, friends=friends,
                       followers=followers, favorites=favorites)
         if dictionary:
@@ -61,7 +61,7 @@ def merge_by_tweet_id(tweets_dictionary, tsv_scores):
         tweetid = item[0]
         score = item[1]
         tweet = tweets_dictionary[tweetid]
-        tweet.score = score
+        tweet.score = float(score)
         tweets_dictionary[tweetid] = tweet
 
     return tweets_dictionary
@@ -69,5 +69,8 @@ def merge_by_tweet_id(tweets_dictionary, tsv_scores):
 
 if __name__ == '__main__':
     # This is only for testing
-    for tweet in tweet_xml_reader("/media/may/Data/LinuxFiles/PycharmProjects/ARM/data/tweets-sample.xml", False):
-        print(tweet)
+    tweet_dict = tweet_xml_reader("../data/tweets-sample.xml", True)
+    tweet_tsv = read_tsv("../data/tweets-sample.tsv")
+
+    tweet_dict = merge_by_tweet_id(tweet_dict, tweet_tsv)
+    print(tweet_dict)
