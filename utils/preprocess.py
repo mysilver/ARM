@@ -1,16 +1,10 @@
-import unicodedata
 import re
-import pyphen
+import unicodedata
 
 from nltk import ngrams
 from nltk.tokenize import TweetTokenizer
 
 tknzr = TweetTokenizer()
-pyphen_dic = pyphen.Pyphen(lang='en')
-
-
-def syllables(text):
-    return pyphen_dic.inserted(text).split('-')
 
 
 def tokenize(text, dictionary=None, ngrams_sizes=(3, 2), normilize_text=True):
