@@ -2,8 +2,9 @@ import json
 
 
 class Tweet:
-    def __init__(self, id, user_id, timestamp, location, text, friends, followers, favorites) -> None:
+    def __init__(self, id, user_id, timestamp, location, text, friends, followers, favorites, score=0) -> None:
         super().__init__()
+        self.score = score
         self.user_id = user_id
         self.followers = followers
         self.friends = friends
