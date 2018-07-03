@@ -8,10 +8,11 @@ from keras.layers import Dense
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.metrics import confusion_matrix
 
+from utils.dataset import read_and_marge
 from utils.preprocess import normalize
 
 
-def baseline_model(features=21):
+def baseline_model(features):
     # create model
     model = Sequential()
     model.add(Dense(64, input_dim=features))
@@ -25,20 +26,26 @@ batch_size = 64
 epochs = 10000
 callbacks = []
 features_per_tweet = 20
-dataset_feature_path = "data/tweet-features.pickle"
+dataset_feature_path = "../data/tweet-features.pickle"
 
 if os.path.isfile(dataset_feature_path):
     with open(dataset_feature_path, 'rb') as f:
         X, Y = pickle.load(f)
-        X = np.array(X)
-        Y = np.array(Y)
 
 else:
-    dataset = read_paraphrased_tsv_files(
-        "/media/may/Data/LinuxFiles/PycharmProjects/PhD/paraphrasing-data/crowdsourced",
-        processor=normalize)
-    X, Y = extract_features(dataset, save=dataset_feature_path)
+    dataset = read_and_marge("../data/tweets-sample.xml", "../data/tweets-sample.tsv")
+    X, Y = [], []
+    for tweetid in dataset:
+        tweet = dataset[tweetid]
+        x, y = tweet.features(feature_extractor)
+        X.append(x)
+        Y.append(y)
+    with open(dataset_feature_path, 'wb') as f:
+        pickle.dump((X, Y), f)
 
+X = np.array(X)
+Y = np.array(Y)
+feature_length = X.shape[1]
 print("Input :", X.shape)
 print("Output :", Y.shape)
 
@@ -48,7 +55,7 @@ with tf.device('/gpu:0'):
     kfold = StratifiedKFold(Y, n_folds=5)
     cvscores = []
     for train, test in kfold:
-        model, _ = baseline_model()
+        model, _ = baseline_model(feature_length)
         model.fit(X[train], Y[train], batch_size=batch_size, epochs=epochs, callbacks=callbacks, verbose=0)
         scores = model.evaluate(X[test], Y[test], verbose=0)
         print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
@@ -59,5 +66,6 @@ with tf.device('/gpu:0'):
         y_pred = (y_pred > 0.5)
         cm = confusion_matrix(Y[test], y_pred)
         print("confusion_matrix:\n", cm)
+
 
     print("%.2f%% (+/- %.2f%%)" % (np.mean(cvscores), np.std(cvscores)))
