@@ -7,15 +7,16 @@ from nltk.corpus import stopwords
 import nltk
 from gensim.models.keyedvectors import KeyedVectors
 import json
-class WikiParser():
 
-    def __init__(self, token ='', frequency = ''):
+
+class WikiParser():
+    def __init__(self, token='', frequency=''):
         super().__init__()
         self.token = token
         self.frequency = frequency
 
     def doc_extractor(self, path):
-        #stemmer = SnowballStemmer('english')
+        # stemmer = SnowballStemmer('english')
         stop_words = set(stopwords.words('english'))
         wiki_data = requests.post(
             'http://d2dcrc.cse.unsw.edu.au:9091/ExtractionAPI-0.0.1-SNAPSHOT/rest/url/paragraph?url=' + path).json()
@@ -26,18 +27,18 @@ class WikiParser():
         text = Text(tokens)
         set_tokens = set()
         lst_tokens = list()
-        lst_token_freq= list()
+        lst_token_freq = list()
         for token in tokens:
-            if len(token) >3 and token not in stop_words:
+            if len(token) > 3 and token not in stop_words:
                 set_tokens.add(token.lower())
                 lst_tokens.append(token.lower())
         for set_token in set_tokens:
             try:
-                frequency = [token for token in lst_tokens if token==set_token]
+                frequency = [token for token in lst_tokens if token == set_token]
                 lst_token_freq.append(WikiParser(set_token, len(frequency)))
             except:
                 continue
-        lst_token_freq.sort(key=lambda x:x.frequency, reverse=True)
+        lst_token_freq.sort(key=lambda x: x.frequency, reverse=True)
         return lst_token_freq[:40]
 
     def token_enrichment(self, lst_token):
@@ -55,7 +56,7 @@ class WikiParser():
         return lst_user_enriched_data
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     WP = WikiParser()
     lst_freq = WP.doc_extractor('https://en.wikipedia.org/wiki/Mental_disorder')
     token = WP.token_enrichment(lst_freq)

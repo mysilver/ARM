@@ -1,6 +1,7 @@
 import xml.etree.ElementTree
 
 from tweet import Tweet
+from utils.preprocess import text2vec
 
 
 def read_tsv(file):
@@ -73,8 +74,27 @@ def read_and_marge(tweet_xml, tweet_tsv):
 
     return merge_by_tweet_id(tweet_dict, tweet_tsv)
 
+
+def create_weka_arff(tweets_dictionary, path):
+    attributes = -1
+    with open(path, 'wt') as f:
+        for t in tweets_dictionary:
+            tweet = tweets_dictionary[t]
+            x, y = tweet.features(text2vec)
+            if attributes == -1:
+                # First sample
+                attributes = len(x)
+                f.write("@relation ARM\n")
+                for i in range(attributes):
+                    f.write("@attribute attr_" + str(i) + " numeric\n")
+                f.write("@attribute score numeric\n\n@data\n")
+            x.append(y)
+            f.write(",".join([str(i) for i in x]) + "\n")
+
+
 if __name__ == '__main__':
     # This is only for testing
 
     tweet_dict = read_and_marge("../data/tweets-sample.xml", "../data/tweets-sample.tsv")
+    create_weka_arff(tweet_dict, "../data/tweets.arff")
     print(tweet_dict)
