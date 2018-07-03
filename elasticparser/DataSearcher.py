@@ -1,6 +1,7 @@
 from elasticsearch import Elasticsearch
 from utils import dataset as ds
 import os
+from seeddatagenerator.DocParser import WikiParser
 class TweetLocator():
     def __init__(self):
         pass
@@ -52,11 +53,16 @@ class TweetLocator():
     def index_data(self, lst_tweet):
         es = Elasticsearch([{"host": "localhost", "port": "9200", 'timeout': 50}])
         counter = 0
+        indexed_Items = 0
         for tweet in lst_tweet:
             try:
                 es.index(index='mtweet', doc_type='tweet', body={'text': tweet.text,'id':tweet.id, 'user_id':tweet.user_id,'location':tweet.location})
+                indexed_Items += 1
             except:
                 counter += 1
+            if indexed_Items > 100000:
+                print('100000 items indexed')
+                indexed_Items=0
         print("Number of error:", str(counter))
 
     def search_data_and(self, query):
@@ -82,16 +88,17 @@ class TweetLocator():
                                 }})
 
 if __name__=='__main__':
+    WP = WikiParser()
     #dirname = os.path.dirname(__file__)
     #filename = os.path.join(dirname,"tweets-sample.xml")
-    lst_tweet = ds.tweet_xml_reader("C:\\Users\\Alireza\\PycharmProjects\\ARM\\data\\tweets-sample.xml")
+    # lst_tweet = ds.tweet_xml_reader("F:\\Twitter Dataset\\1000000 tweets.xml")
     tl = TweetLocator()
-    tl.define_mapping()
-    tl.index_data(lst_tweet)
-    tl.increase_window_size('mtweet')
+    # tl.define_mapping()
+    # tl.index_data(lst_tweet)
+    #tl.increase_window_size('mtweet')
     lst_freq = WP.doc_extractor('https://en.wikipedia.org/wiki/Mental_disorder')
     lst_token = WP.token_enrichment(lst_freq)
+    set_result= list()
     for token in lst_token:
-        lst_result = tl.search_data_and(token)
-    for item in lst_result:
-        print(item["_source"])
+        set_result.extend(tl.search_data_and(token))
+    print(len(set_result))
