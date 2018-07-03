@@ -1,0 +1,1 @@
+This directory is used to store check-points for deep learning
