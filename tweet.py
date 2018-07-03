@@ -14,7 +14,7 @@ class Tweet:
         self.id = id
         self.favorites = favorites
 
-    def features(self, feature_extractor, numeric=False):
+    def features(self, feature_extractor, numeric=True):
         """
         :param numeric: If True; all features must be numeric
         :param feature_extractor: Converts tweet text to a vector with particular size
