@@ -14,20 +14,28 @@ class Tweet:
         self.id = id
         self.favorites = favorites
 
-    def features(self, feature_extractor):
+    def features(self, feature_extractor, numeric=False):
         """
+        :param numeric: If True; all features must be numeric
         :param feature_extractor: Converts tweet text to a vector with particular size
         :return: two list; (1) features, and (2) score
         """
         ret = []
-        ret.append(self.id)
-        ret.append(self.user_id)
-        ret.append(self.timestamp)
-        ret.append(self.location)
+        if numeric:
+            ret.append(hash(self.id))
+            ret.append(hash(self.user_id))
+            ret.append(hash(self.timestamp))
+            ret.append(hash(self.location))
+        else:
+            ret.append(self.id)
+            ret.append(self.user_id)
+            ret.append(self.timestamp)
+            ret.append(self.location)
+
         ret.append(self.friends)
         ret.append(self.followers)
         ret.append(self.favorites)
-        ret.append(feature_extractor(self.text))
+        ret.extend(feature_extractor(self.text))
         return ret, self.score
 
     def __str__(self) -> str:

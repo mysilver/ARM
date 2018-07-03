@@ -6,23 +6,23 @@ import tensorflow as tf
 from keras import Sequential
 from keras.callbacks import ModelCheckpoint
 from keras.layers import Dense
-from sklearn.cross_validation import StratifiedKFold
-from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import StratifiedKFold
 
 from utils.dataset import read_and_marge
+from utils.preprocess import text2vec
 
 
 def create_model(features):
     # create model
     model = Sequential()
     model.add(Dense(64, input_dim=features))
-    model.add(Dense(1, activation='sigmoid'))
+    model.add(Dense(1))
     # Compile model
-    model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['mean_squared_error'])
     return model
 
 
-def load_training_data(tweet_xml, tweet_tsv, dataset_feature_path):
+def load_training_data(tweet_xml, tweet_tsv, dataset_feature_path, feature_extractor):
     if os.path.isfile(dataset_feature_path):
         with open(dataset_feature_path, 'rb') as f:
             X, Y = pickle.load(f)
@@ -32,7 +32,7 @@ def load_training_data(tweet_xml, tweet_tsv, dataset_feature_path):
         X, Y = [], []
         for tweetid in dataset:
             tweet = dataset[tweetid]
-            x, y = tweet.features(feature_extractor)
+            x, y = tweet.features(feature_extractor, numeric=True)
             X.append(x)
             Y.append(y)
         with open(dataset_feature_path, 'wb') as f:
@@ -46,41 +46,33 @@ def load_training_data(tweet_xml, tweet_tsv, dataset_feature_path):
     return X, Y, feature_length
 
 
-def train(tweet_xml, tweet_tsv, batch_size, epochs, dataset_feature_path, best_model):
-    X, Y, feature_length = load_training_data(tweet_xml, tweet_tsv, dataset_feature_path)
+def train(tweet_xml, tweet_tsv, batch_size, epochs, dataset_feature_path, best_model, feature_extractor):
+    X, Y, feature_length = load_training_data(tweet_xml, tweet_tsv, dataset_feature_path, feature_extractor)
 
     callbacks = [
-        ModelCheckpoint("../data/check-points/epoch-{epoch:02d}.hdf5", monitor='val_loss', verbose=1,
+        ModelCheckpoint("../data/check-points/epoch-{epoch:02d}.hdf5", monitor='mean_squared_error', verbose=1,
                         save_best_only=False,
                         save_weights_only=False,
                         mode='auto', period=1),
-        ModelCheckpoint(best_model, monitor='val_loss', verbose=1, save_best_only=True,
+        ModelCheckpoint(best_model, monitor='mean_squared_error', verbose=1, save_best_only=True,
                         save_weights_only=False, mode='auto', period=1)]
 
     with tf.device('/gpu:0'):
-        kfold = StratifiedKFold(Y, n_folds=5)
-        cvscores = []
-        for train, test in kfold:
-            model, _ = create_model(feature_length)
+        kfold = StratifiedKFold(n_splits=2)
+
+        for index, (train, test) in enumerate(kfold.split(X, np.reshape([Y > 0.5], (Y.shape[0], 1)))):
+            model = create_model(feature_length)
             model.fit(X[train], Y[train], batch_size=batch_size, epochs=epochs, callbacks=callbacks, verbose=0)
             scores = model.evaluate(X[test], Y[test], verbose=1)
-            print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
-            # print(model.metrics)
-            # print(scores)
-            cvscores.append(scores[1] * 100)
-            y_pred = model.predict(X[test])
-            y_pred = (y_pred > 0.5)
-            cm = confusion_matrix(Y[test], y_pred)
-            print("confusion_matrix:\n", cm)
-
-        print("%.2f%% (+/- %.2f%%)" % (np.mean(cvscores), np.std(cvscores)))
+            print(scores)
 
 
-def test(weights_path):
+def evaluation(weights_path):
     feature_length = 100
     model, _ = create_model(feature_length)
     model.load_weights(weights_path)
     # TODO : we need to see what is the testing data
+
 
 if __name__ == '__main__':
     train_mode = True
@@ -90,7 +82,8 @@ if __name__ == '__main__':
         tweet_tsv = "../data/tweets-sample.tsv"
         dataset_feature_path = "../data/tweet-features.pickle"
         batch_size = 64
-        epochs = 10000
-        train(tweet_xml, tweet_tsv, batch_size, epochs, dataset_feature_path, best_model)
+        epochs = 1
+        feature_extractor = text2vec
+        train(tweet_xml, tweet_tsv, batch_size, epochs, dataset_feature_path, best_model, feature_extractor)
     else:
-        test(best_model)
+        evaluation(best_model)

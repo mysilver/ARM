@@ -38,3 +38,7 @@ def normalize(s):
     s = re.sub(r"[^a-zA-Z.!?]+", r" ", s)
     s = s.strip()
     return s
+
+
+def text2vec(text):
+    return [len(text)]
