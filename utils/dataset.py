@@ -76,6 +76,12 @@ def read_and_marge(tweet_xml, tweet_tsv):
 
 
 def create_weka_arff(tweets_dictionary, path):
+    """
+    Creates input for Weka
+    :param tweets_dictionary: 
+    :param path: 
+    :return: 
+    """
     attributes = -1
     with open(path, 'wt') as f:
         for t in tweets_dictionary:
