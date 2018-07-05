@@ -3,12 +3,16 @@ import xml.etree.ElementTree
 import numpy
 import pickle
 
+from empath import Empath
 from nltk.corpus import stopwords
 
 from tweet import Tweet
 from utils.preprocess import text2vec, pos_tag, sentiment, tokenize
 from utils.word2vec import word_vector
+
 stop_words = set(stopwords.words('english'))
+EmpathCat = Empath()
+
 
 def read_tsv(file):
     """
@@ -77,7 +81,7 @@ def merge_by_tweet_id(tweets_dictionary, tsv_scores):
 
 
 def read_and_marge(tweet_xml, tweet_tsv):
-    tweet_dict = tweet_xml_reader(tweet_xml, True)
+    tweet_dict = tweet_xml_reader(tweet_xml, dictionary=True, filter={})
     tweet_tsv = read_tsv(tweet_tsv)
 
     return merge_by_tweet_id(tweet_dict, tweet_tsv)
@@ -117,16 +121,17 @@ def load_empath(empath_features_path):
 def create_tweet_vec(tweets_xml_path, empath_features_path):
     empath_feature_dict = load_empath(empath_features_path)
     tweet_dict = tweet_xml_reader(tweets_xml_path, set(empath_feature_dict.keys()), True)
-    output = {}
-    for tweet_id, tweet in tweet_dict.items():
-        if tweet_id in empath_feature_dict:
-            vec = tweet_vector(tweet.text, tweet_id, empath_feature_dict)
-            output[tweet_id] = vec
-            if len(output) % 100 == 0:
-                print("Tweet processed:", len(output) * 100 / len(empath_feature_dict))
-
-    with open("../data/tweet_vec.pickle", 'wb') as f:
-        pickle.dump(output, f)
+    # output = {}
+    counter = 0
+    with open("../data/tweet_vec.tsv", 'wt') as f:
+        for tweet_id, tweet in tweet_dict.items():
+            if tweet_id in empath_feature_dict:
+                vec = tweet_vector(tweet.text, tweet_id, empath_feature_dict)
+                # output[tweet_id] = vec
+                if counter % 100 == 0:
+                    print("Tweet processed:", counter * 100 / len(empath_feature_dict))
+                counter += 1
+                f.write(tweet_id + "\t" + "\t".join([str(i) for i in vec]))
 
     print("Successfully stored the output in the data directory")
 
@@ -140,26 +145,70 @@ def tweet_vector(tweet, tweet_id, empath_features,
                  tags={'JJ', 'JJR', 'JJS', 'NN', 'NNS', 'NNP', 'NNPS', 'RBR', 'RBS', 'RB', 'VB', 'VBD',
                        'VBG', 'VBN', 'VBP', 'VBZ'}):
     vec = numpy.zeros(300)
-    tagged_tokens = pos_tag(tweet)
-    counter = 0
-    for item in tagged_tokens:
-        if item[1] in tags:
-            wv = word_vector(item[0])
-            if wv is not None:
-                vec = vec + wv
-                counter += 1
-    vec = vec / counter
-    # tokens = tokenize(tweet, stop_words)
+    # tagged_tokens = pos_tag(tweet)
     # counter = 0
-    # for item in tokens:
-    #     wv = word_vector(item)
-    #     if wv is not None:
-    #         vec = vec + wv
-    #         counter += 1
+    # for item in tagged_tokens:
+    #     if item[1] in tags:
+    #         wv = word_vector(item[0])
+    #         if wv is not None:
+    #             vec = vec + wv
+    #             counter += 1
     # vec = vec / counter
+    tokens = tokenize(tweet, stop_words)
+    counter = 0
+    for item in tokens:
+        wv = word_vector(item)
+        if wv is not None:
+            vec = vec + wv
+            counter += 1
+    vec = vec / counter
 
     # sent = sentiment(tweet)
-    empath = empath_features[tweet_id]
+    if tweet_id:
+        empath = empath_features[tweet_id]
+    else:
+        empath = EmpathCat.analyze(tweet.text, categories=[
+            "medical_emergency",
+            "hate",
+            "aggression",
+            "envy",
+            "crime",
+            "masculine",
+            "prison",
+            "dispute",
+            "nervousness",
+            "weakness",
+            "horror",
+            "suffering",
+            "kill",
+            "redicule",
+            "sexual",
+            "fear",
+            "violence",
+            "neglect",
+            "war",
+            "disgust",
+            "ugliness",
+            "torment",
+            "lust",
+            "shame",
+            "terrorism",
+            "poor",
+            "timidity",
+            "alcohol",
+            "monster",
+            "health",
+            "disappointment",
+            "rage",
+            "pain",
+            "swearing_terms",
+            "negative_emotional",
+            "cold_war",
+            "weapon",
+            "children",
+            "injury",
+            "irritability",
+        ])
     vec = numpy.concatenate((vec, empath, []), axis=0).tolist()
     return vec
 
