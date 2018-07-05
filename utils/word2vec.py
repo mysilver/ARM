@@ -17,12 +17,13 @@ def word_vector(word):
 def find_most_similar(vec, vectors_dictionary, topn=100):
     h = []
     counter = 0
+    vec = vec[:301]
     with open(vectors_dictionary, 'rt') as f:
         for line in f.readlines():
             # counter +=1
             line = line.split("\t")
             id = line[0]
-            v = line[1:]
+            v = line[1:302]
 
             similarity = 1 - spatial.distance.cosine([float(i) for i in vec], [float(i) for i in v])
 

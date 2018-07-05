@@ -11,7 +11,7 @@ from utils.word2vec import find_most_similar
 if False:
     create_tweet_vec("../data/1000000 tweets.xml", "../data/empath-features.tsv")
 
-with open("../data/seed-words", 'rt') as f:
+with open("../data/seed", 'rt') as f:
     resultant_vector = numpy.zeros(340)
     counter = 0
     for tweet in f.readlines():
