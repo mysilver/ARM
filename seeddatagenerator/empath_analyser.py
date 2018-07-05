@@ -13,7 +13,7 @@ class GetEmpathCategory():
         #tl = TweetLocator()
         #es = Elasticsearch([{'host': 'localhost', 'port': '9200', 'timeout': 300}])
         #query = {"query": {"match_all": {}}}
-        lst_tweet = ds.tweet_xml_reader("F:\\Twitter Dataset\\1000000 tweets.xml", dictionary=False)
+        lst_tweet = ds.tweet_xml_reader("F:\\Twitter Dataset\\1000000 tweets.xml", dictionary=False, filter=None)
         #lst_returned_value = es.search(index='mtweet', body=query, search_type="scan", scroll="1m")['hits']['hits']
         return lst_tweet
 
@@ -27,7 +27,6 @@ class GetEmpathCategory():
             # if counter >1000:
             #     break
             dict_empath_cat = get_emapth_lexicon.analyze(tweet.text, categories=[
-                "medical_emergency",
                 "hate",
                 "aggression",
                 "envy",
@@ -36,11 +35,9 @@ class GetEmpathCategory():
                 "prison",
                 "dispute",
                 "nervousness",
-                "weakness",
                 "horror",
                 "suffering",
                 "kill",
-                "redicule",
                 "sexual",
                 "fear",
                 "violence",
@@ -48,28 +45,21 @@ class GetEmpathCategory():
                 "war",
                 "disgust",
                 "ugliness",
-                "torment",
                 "lust",
                 "shame",
                 "terrorism",
-                "poor",
                 "timidity",
                 "alcohol",
-                "monster",
-                "health",
                 "disappointment",
                 "rage",
                 "pain",
-                "swearing_terms",
                 "negative_emotional",
-                "cold_war",
                 "weapon",
                 "children",
-                "injury",
                 "irritability",
             ])
             all += 1
-            if sum([val for _, val in dict_empath_cat.items()]) > 0.1:
+            if sum([val for _, val in dict_empath_cat.items()]) > 1:
                 counter+=1
                 if counter > 1000:
                     print('Number of iterated items, and the number of accepted item',all, counter)

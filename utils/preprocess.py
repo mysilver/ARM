@@ -6,7 +6,7 @@ from stanfordcorenlp import StanfordCoreNLP
 import json
 
 tknzr = TweetTokenizer()
-nlp = StanfordCoreNLP('D:\TEMP\stanford-corenlp-full-2018-02-27')
+# nlp = StanfordCoreNLP('D:\TEMP\stanford-corenlp-full-2018-02-27')
 
 
 def tokenize(text, dictionary=None, ngrams_sizes=(3, 2), normilize_text=True, stop_words={}):
