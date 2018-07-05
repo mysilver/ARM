@@ -1,8 +1,14 @@
 import xml.etree.ElementTree
 
-from tweet import Tweet
-from utils.preprocess import text2vec
+import numpy
+import pickle
 
+from nltk.corpus import stopwords
+
+from tweet import Tweet
+from utils.preprocess import text2vec, pos_tag, sentiment, tokenize
+from utils.word2vec import word_vector
+stop_words = set(stopwords.words('english'))
 
 def read_tsv(file):
     """
@@ -20,7 +26,7 @@ def read_tsv(file):
     return ret
 
 
-def tweet_xml_reader(file, dictionary=False):
+def tweet_xml_reader(file, filter, dictionary=False):
     """
     :param file: Tweet XML file path 
     :param dictionary: returns a dictionary (TweetID, Tweet) if set to True; and a list of Tweets if it is false
@@ -43,10 +49,12 @@ def tweet_xml_reader(file, dictionary=False):
         favorites = int(atype.find('UserFavoritesCount').text.strip())
         tweet = Tweet(id=id, user_id=userid, timestamp=time, location=location, text=text, friends=friends,
                       followers=followers, favorites=favorites)
-        if dictionary:
-            ret[tweet.id] = tweet
-        else:
-            ret.append(tweet)
+
+        if tweet.id in filter:
+            if dictionary:
+                ret[tweet.id] = tweet
+            else:
+                ret.append(tweet)
 
     return ret
 
@@ -98,9 +106,66 @@ def create_weka_arff(tweets_dictionary, path):
             f.write(",".join([str(i) for i in x]) + "\n")
 
 
-if __name__ == '__main__':
-    # This is only for testing
+def load_empath(empath_features_path):
+    tsv = read_tsv(empath_features_path)
+    ret = {}
+    for item in tsv:
+        ret[item[0]] = item[1:]
+    return ret
 
-    tweet_dict = read_and_marge("../data/tweets-sample.xml", "../data/tweets-sample.tsv")
-    create_weka_arff(tweet_dict, "../data/tweets.arff")
-    print(tweet_dict)
+
+def create_tweet_vec(tweets_xml_path, empath_features_path):
+    empath_feature_dict = load_empath(empath_features_path)
+    tweet_dict = tweet_xml_reader(tweets_xml_path, set(empath_feature_dict.keys()), True)
+    output = {}
+    for tweet_id, tweet in tweet_dict.items():
+        if tweet_id in empath_feature_dict:
+            vec = tweet_vector(tweet.text, tweet_id, empath_feature_dict)
+            output[tweet_id] = vec
+            if len(output) % 100 == 0:
+                print("Tweet processed:", len(output) * 100 / len(empath_feature_dict))
+
+    with open("../data/tweet_vec.pickle", 'wb') as f:
+        pickle.dump(output, f)
+
+    print("Successfully stored the output in the data directory")
+
+
+def load_tweet_vec(path):
+    tsv = read_tsv(path)
+    pass
+
+
+def tweet_vector(tweet, tweet_id, empath_features,
+                 tags={'JJ', 'JJR', 'JJS', 'NN', 'NNS', 'NNP', 'NNPS', 'RBR', 'RBS', 'RB', 'VB', 'VBD',
+                       'VBG', 'VBN', 'VBP', 'VBZ'}):
+    vec = numpy.zeros(300)
+    tagged_tokens = pos_tag(tweet)
+    counter = 0
+    for item in tagged_tokens:
+        if item[1] in tags:
+            wv = word_vector(item[0])
+            if wv is not None:
+                vec = vec + wv
+                counter += 1
+    vec = vec / counter
+    # tokens = tokenize(tweet, stop_words)
+    # counter = 0
+    # for item in tokens:
+    #     wv = word_vector(item)
+    #     if wv is not None:
+    #         vec = vec + wv
+    #         counter += 1
+    # vec = vec / counter
+
+    # sent = sentiment(tweet)
+    empath = empath_features[tweet_id]
+    vec = numpy.concatenate((vec, empath, []), axis=0).tolist()
+    return vec
+
+# if __name__ == '__main__':
+# This is only for testing
+
+# tweet_dict = read_and_marge("../data/tweets-sample.xml", "../data/tweets-sample.tsv")
+# create_weka_arff(tweet_dict, "../data/tweets.arff")
+# print(tweet_dict)
