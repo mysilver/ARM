@@ -3,8 +3,8 @@ from gensim.models.keyedvectors import KeyedVectors
 from scipy import spatial
 import heapq
 
-model = KeyedVectors.load_word2vec_format(
-    'D:\data\GoogleNews-vectors-negative300.bin', binary=True, limit=200000)
+#model = KeyedVectors.load_word2vec_format(
+#    'D:\data\GoogleNews-vectors-negative300.bin', binary=True, limit=200000)
 
 
 def word_vector(word):

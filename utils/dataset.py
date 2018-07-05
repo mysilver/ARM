@@ -54,7 +54,7 @@ def tweet_xml_reader(file, filter, dictionary=False):
         tweet = Tweet(id=id, user_id=userid, timestamp=time, location=location, text=text, friends=friends,
                       followers=followers, favorites=favorites)
 
-        if tweet.id in filter:
+        if filter is None or tweet.id in filter:
             if dictionary:
                 ret[tweet.id] = tweet
             else:
