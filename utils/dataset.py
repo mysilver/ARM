@@ -138,6 +138,7 @@ def create_tweet_vec(tweets_xml_path, empath_features_path):
 
 def load_tweet_vec(path):
     tsv = read_tsv(path)
+
     pass
 
 
@@ -167,48 +168,26 @@ def tweet_vector(tweet, tweet_id, empath_features,
     if tweet_id:
         empath = empath_features[tweet_id]
     else:
-        empath = EmpathCat.analyze(tweet.text, categories=[
-            "medical_emergency",
-            "hate",
-            "aggression",
-            "envy",
-            "crime",
-            "masculine",
-            "prison",
-            "dispute",
-            "nervousness",
-            "weakness",
+        empath = EmpathCat.analyze(tweet, categories=[
+            "medical_emergency","hate", "aggression", "envy", "crime", "masculine",
+            "prison", "dispute",  "nervousness", "weakness",
             "horror",
             "suffering",
-            "kill",
-            "redicule",
-            "sexual",
-            "fear",
-            "violence",
-            "neglect",
-            "war",
-            "disgust",
+            "kill", "redicule", "sexual",
+            "fear", "violence", "neglect",
+            "war", "disgust",
             "ugliness",
-            "torment",
-            "lust",
-            "shame",
-            "terrorism",
-            "poor",
-            "timidity",
-            "alcohol",
+            "torment", "lust",
+            "shame", "terrorism",
+            "poor", "timidity", "alcohol",
             "monster",
-            "health",
-            "disappointment",
-            "rage",
-            "pain",
-            "swearing_terms",
-            "negative_emotional",
-            "cold_war",
-            "weapon",
-            "children",
-            "injury",
-            "irritability",
+            "health", "disappointment", "rage",
+            "pain", "swearing_terms",
+            "negative_emotional", "cold_war",
+            "weapon", "children",
+            "injury", "irritability",
         ])
+        empath = [v for _,v in empath.items()]
     vec = numpy.concatenate((vec, empath, []), axis=0).tolist()
     return vec
 
