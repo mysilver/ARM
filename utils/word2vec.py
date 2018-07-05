@@ -3,8 +3,8 @@ from gensim.models.keyedvectors import KeyedVectors
 from scipy import spatial
 import heapq
 
-#model = KeyedVectors.load_word2vec_format(
-#    'D:\data\GoogleNews-vectors-negative300.bin', binary=True, limit=200000)
+model = KeyedVectors.load_word2vec_format(
+   'D:\data\GoogleNews-vectors-negative300.bin', binary=True, limit=200000)
 
 
 def word_vector(word):
@@ -23,11 +23,13 @@ def find_most_similar(vec, vectors_dictionary, topn=100):
             line = line.split("\t")
             id = line[0]
             v = line[1:]
+
             similarity = 1 - spatial.distance.cosine([float(i) for i in vec], [float(i) for i in v])
+
             if len(h) < topn:
-                heapq.heappush(h, (id, similarity))
+                heapq.heappush(h, (similarity, id))
             else:
-                heapq.heappushpop(h, (id, similarity))
+                heapq.heappushpop(h, (similarity, id))
 
 
     return h
