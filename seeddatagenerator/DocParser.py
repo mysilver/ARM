@@ -7,7 +7,7 @@ from nltk.corpus import stopwords
 import nltk
 from gensim.models.keyedvectors import KeyedVectors
 import json
-
+import csv
 
 class WikiParser():
     def __init__(self, token='', frequency=''):
@@ -55,13 +55,21 @@ class WikiParser():
                     lst_user_enriched_data.append(item[0])
         return lst_user_enriched_data
 
+    def generate_tsv_file(self, lst_tweet_user_data):
+        with open('feature.tsv','wt') as tsvfile:
+            for tweet in lst_tweet_user_data:
+                tsvfile.write(tweet.tweetid + "\t" + "\t".join([str(t) for _,t in tweet.feature.items()]) + "\n")
 
-if __name__ == '__main__':
-    WP = WikiParser()
-    lst_freq = WP.doc_extractor('https://en.wikipedia.org/wiki/Mental_disorder')
-    token = WP.token_enrichment(lst_freq)
-    for t in token:
-        print(t)
+                #writer.writerow([tweet.id, tweet.feature])
+                #for key, value in tweet.feature.items():
+                    #writer.writerow(tweet.tweetid, key, value)
+#
+# if __name__ == '__main__':
+#     WP = WikiParser()
+#     lst_freq = WP.doc_extractor('https://en.wikipedia.org/wiki/Mental_disorder')
+#     token = WP.token_enrichment(lst_freq)
+#     for t in token:
+#         print(t)
 
         # json_keyword = requests.post(
         #     'http://d2dcrc.cse.unsw.edu.au:9091/ExtractionAPI-0.0.1-SNAPSHOT/rest/keyword?sentence='
