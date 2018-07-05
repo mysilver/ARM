@@ -16,11 +16,18 @@ def word_vector(word):
 
 def find_most_similar(vec, vectors_dictionary, topn=100):
     h = []
-    for id, v in vectors_dictionary.items():
-        similarity = 1 - spatial.distance.cosine(vec, v)
-        if len(h) < topn:
-            heapq.heappush(h, (id, similarity))
-        else:
-            heapq.heappushpop(h)
+    counter = 0
+    with open(vectors_dictionary, 'rt') as f:
+        for line in f.readlines():
+            # counter +=1
+            line = line.split("\t")
+            id = line[0]
+            v = line[1:]
+            similarity = 1 - spatial.distance.cosine([float(i) for i in vec], [float(i) for i in v])
+            if len(h) < topn:
+                heapq.heappush(h, (id, similarity))
+            else:
+                heapq.heappushpop(h, (id, similarity))
+
 
     return h

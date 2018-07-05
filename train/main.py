@@ -22,5 +22,9 @@ with open("../data/seed", 'rt') as f:
     resultant_vector /=counter
     # print(resultant_vector)
 
-    tweet_vec = load_empath("../data/tweet_vec.tsv")
-    find_most_similar(resultant_vector, vectors_dictionary=tweet_vec)
+    # tweet_vec = load_empath("../data/tweet_vec.tsv")
+    most_similarity = find_most_similar(resultant_vector, vectors_dictionary="../data/tweet_vec.tsv")
+    print(most_similarity)
+    tweet_dict = tweet_xml_reader("../data/1000000 tweets.xml", dictionary=True, filter={})
+    for t in most_similarity:
+        print(t[1], tweet_dict[t[0]].text)
