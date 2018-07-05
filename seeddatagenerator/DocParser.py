@@ -56,7 +56,7 @@ class WikiParser():
         return lst_user_enriched_data
 
     def generate_tsv_file(self, lst_tweet_user_data):
-        with open('feature.tsv','wt') as tsvfile:
+        with open('empath-features.tsv','wt') as tsvfile:
             for tweet in lst_tweet_user_data:
                 tsvfile.write(tweet.tweetid + "\t" + "\t".join([str(t) for _,t in tweet.feature.items()]) + "\n")
 

@@ -9,7 +9,7 @@ tknzr = TweetTokenizer()
 nlp = StanfordCoreNLP('D:\TEMP\stanford-corenlp-full-2018-02-27')
 
 
-def tokenize(text, dictionary=None, ngrams_sizes=(3, 2), normilize_text=True):
+def tokenize(text, dictionary=None, ngrams_sizes=(3, 2), normilize_text=True, stop_words={}):
     if normilize_text:
         text = normalize(text)
 
@@ -23,7 +23,8 @@ def tokenize(text, dictionary=None, ngrams_sizes=(3, 2), normilize_text=True):
                 if phrs in dictionary:
                     text = text.replace(" ".join(ng), phrs)
 
-    tokens = tknzr.tokenize(text)
+    tokens = [w for w in tknzr.tokenize(text) if w not in stop_words]
+
     return tokens
 
 
