@@ -1,7 +1,10 @@
 import xml.etree.ElementTree
 
+import numpy
+import pickle
 from tweet import Tweet
-from utils.preprocess import text2vec
+from utils.preprocess import text2vec, pos_tag, sentiment
+from utils.word2vec import word_vector
 
 
 def read_tsv(file):
@@ -96,6 +99,60 @@ def create_weka_arff(tweets_dictionary, path):
                 f.write("@attribute score numeric\n\n@data\n")
             x.append(y)
             f.write(",".join([str(i) for i in x]) + "\n")
+
+
+empath_feature_dict = None
+
+
+def load_empath(empath_features_path):
+    empath = None
+    pass
+
+
+def empath_features(tweet_id):
+    return None
+
+
+def create_tweet_vec(tweets_dictionary_path, empath_features_path):
+    if empath_feature_dict is None:
+        load_empath(empath_features_path)
+
+    tweet_dict = tweet_xml_reader(tweets_dictionary_path, True)
+    output = {}
+    for tweet_id, tweet in tweet_dict.items():
+        if tweet_id in empath_feature_dict:
+            vec = tweet_vector(tweet.text, tweet_id)
+            output[tweet_id] = vec.tolist()
+
+    with open("../data/tweet_vec.pickle", 'wb') as f:
+        pickle.dumps(output, f)
+
+    print("Successfully stored the output in the data directory")
+
+
+def load_tweet_vec(path):
+    with open(path, 'rb') as f:
+        return pickle.load(f)
+
+
+def tweet_vector(tweet, tweet_id,
+                 tags={'JJ', 'JJR', 'JJS', 'NN', 'NNS', 'NNP', 'NNPS', 'RBR', 'RBS', 'RB', 'VB', 'VBD',
+                       'VBG', 'VBN', 'VBP', 'VBZ'}):
+    tagged_tokens = pos_tag(tweet)
+    vec = numpy.zeros(300)
+    counter = 0
+    for item in tagged_tokens:
+        if item[1] in tags:
+            wv = word_vector(item[0])
+            if wv is not None:
+                vec = vec + wv
+                counter += 1
+    vec = vec / counter
+
+    sent = sentiment(tweet)
+    empath = empath_features(tweet_id)
+    numpy.concatenate([vec, empath, sent])
+    return vec
 
 
 if __name__ == '__main__':
