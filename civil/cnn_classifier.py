@@ -3,6 +3,7 @@ import tensorflow as tf
 import numpy as np
 from keras import Sequential
 from keras.layers import Dense, Conv1D, MaxPool1D, Flatten
+from keras.utils.vis_utils import plot_model
 
 from civil.utils import convert_matlab_file, load_dataset
 
@@ -47,7 +48,7 @@ if __name__ == "__main__":
         print(X_train.shape, "==>", Y_train.shape)
     except:
         print("Converting Matlab file to python compatible file")
-        X_train, Y_train = convert_matlab_file('Bridge_01.mat', path)
+        X_train, Y_train = convert_matlab_file(240, 'Bridge_01.mat', path)
 
     with tf.device("/gpu:1"):
         sensor_size = 5001
@@ -61,7 +62,7 @@ if __name__ == "__main__":
         model.add(Flatten())
         model.add(Dense(6, activation="sigmoid"))
         model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=["accuracy"])
-
+        plot_model(model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
         model.summary()
 
         model.fit(X_train, Y_train, epochs=5000, batch_size=256)

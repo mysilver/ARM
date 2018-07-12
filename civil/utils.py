@@ -11,11 +11,11 @@ def shuffle(a, b):
     return a[p], b[p]
 
 
-def convert_matlab_file(matlab_file, save_path):
+def convert_matlab_file(samples, matlab_file, save_path):
     x = scipy.io.loadmat(matlab_file)
     sensors = np.transpose(x['InputData'], (3, 0, 1, 2))
     print(sensors.shape)
-    sensors = sensors.reshape(240, 5001, 28)
+    sensors = sensors.reshape(samples, 5001, 28)
 
     X_train = sensors
     Y_train = np.array([math.ceil(i / 40) -1 for i in range(1, 241)])
