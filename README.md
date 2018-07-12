@@ -1,2 +1,0 @@
-# ARM
-Mental Health Challenge
