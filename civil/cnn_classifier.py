@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
     # sensor_size, X_train = reduce_last_dimension(X_train, sensor_size)
     with tf.device("/cpu:0"):
-        print("Traning is started")
+        print("Training is started")
         kfold = StratifiedKFold(Y_train, n_folds=5)
         for train, test in kfold:
             model = create_model()
