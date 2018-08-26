@@ -4,7 +4,7 @@ from keras.layers import Dense, Conv1D, MaxPool1D, Flatten
 # from keras.utils.vis_utils import plot_model
 from sklearn.cross_validation import StratifiedKFold
 from civil.utils import convert_matlab_file, load_pickle
-
+import numpy
 
 def create_model():
     model = Sequential()
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     # sensor_size, X_train = reduce_last_dimension(X_train, sensor_size)
     with tf.device("/cpu:0"):
         print("Training is started")
-        kfold = StratifiedKFold(Y_train, n_folds=5)
+        kfold = StratifiedKFold(numpy.argmax(Y_train, axis=-1), n_folds=5)
         for train, test in kfold:
             model = create_model()
             model.fit(X_train[train], Y_train[train], epochs=epochs, batch_size=batch_size)
