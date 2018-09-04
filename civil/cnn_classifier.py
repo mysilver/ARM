@@ -6,6 +6,7 @@ from sklearn.cross_validation import StratifiedKFold
 from civil.utils import convert_matlab_file, load_pickle
 import numpy
 
+
 def create_model():
     model = Sequential()
     print("Sensor Shape (after reduction):", X_train.shape)
@@ -25,7 +26,7 @@ if __name__ == "__main__":
 
     number_of_samples = 240
     number_of_samples_per_class = 40
-    number_of_classes = number_of_samples / number_of_samples_per_class
+    number_of_classes = int(number_of_samples / number_of_samples_per_class)
     signal_length = 5001  # the length of signal
     number_of_sensors = 28
     epochs = 500
@@ -42,7 +43,7 @@ if __name__ == "__main__":
                                                number_of_sensors, 'Bridge_01.mat', path)
 
     # sensor_size, X_train = reduce_last_dimension(X_train, sensor_size)
-    with tf.device("/cpu:0"):
+    with tf.device("/gpu:0"):
         print("Training is started")
         kfold = StratifiedKFold(numpy.argmax(Y_train, axis=-1), n_folds=5)
         for train, test in kfold:
