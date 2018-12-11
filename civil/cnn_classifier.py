@@ -22,6 +22,23 @@ def create_model():
     return model
 
 
+def save_model(fold, model):
+    model_yaml = model.to_yaml()
+    with open("./trained_models/model_fold_{}.yaml".format(fold), "w") as yaml_file:
+        yaml_file.write(model_yaml)
+
+    model.save_weights("./trained_models/model_fold_{}.h5".format(fold))
+    print("Saved model to disk")
+
+
+def save_datasets(fold, x_train, y_train, x_test, y_test):
+    numpy.save("./trained_models/test_x_{}.npy".format(fold), x_test)
+    numpy.save("./trained_models/test_y_{}.npy".format(fold), y_test)
+    numpy.save("./trained_models/train_x_{}.npy".format(fold), x_train)
+    numpy.save("./trained_models/train_y_{}.npy".format(fold), y_train)
+    print("Test Dataset saved")
+
+
 if __name__ == "__main__":
 
     number_of_samples = 240
@@ -29,7 +46,7 @@ if __name__ == "__main__":
     number_of_classes = int(number_of_samples / number_of_samples_per_class)
     signal_length = 5001  # the length of signal
     number_of_sensors = 28
-    epochs = 500
+    epochs = 50
     batch_size = 64
     path = "civil.pickle"
 
@@ -43,11 +60,15 @@ if __name__ == "__main__":
                                                number_of_sensors, 'Bridge_01.mat', path)
 
     # sensor_size, X_train = reduce_last_dimension(X_train, sensor_size)
-    with tf.device("/gpu:0"):
+    with tf.device("/cpu:0"):
         print("Training is started")
         kfold = StratifiedKFold(numpy.argmax(Y_train, axis=-1), n_folds=5)
+        fold = 1
         for train, test in kfold:
             model = create_model()
             model.fit(X_train[train], Y_train[train], epochs=epochs, batch_size=batch_size)
+            save_model(fold, model)
+            save_datasets(fold, X_train[train], Y_train[train], X_train[test], Y_train[test])
             scores = model.evaluate(X_train[test], Y_train[test], verbose=1)
             print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
+            fold += 1
