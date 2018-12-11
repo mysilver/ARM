@@ -2,7 +2,7 @@ import tensorflow as tf
 from keras import Sequential
 from keras.layers import Dense, Conv1D, MaxPool1D, Flatten
 # from keras.utils.vis_utils import plot_model
-from sklearn.cross_validation import StratifiedKFold
+from sklearn.model_selection import StratifiedKFold
 from civil.utils import convert_matlab_file, load_pickle
 import numpy
 
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     number_of_classes = int(number_of_samples / number_of_samples_per_class)
     signal_length = 5001  # the length of signal
     number_of_sensors = 28
-    epochs = 50
+    epochs = 500
     batch_size = 64
     path = "civil.pickle"
 
@@ -62,9 +62,10 @@ if __name__ == "__main__":
     # sensor_size, X_train = reduce_last_dimension(X_train, sensor_size)
     with tf.device("/cpu:0"):
         print("Training is started")
-        kfold = StratifiedKFold(numpy.argmax(Y_train, axis=-1), n_folds=5)
+
+        kfold = StratifiedKFold(n_splits=5)
         fold = 1
-        for train, test in kfold:
+        for train, test in kfold.split(X_train, numpy.argmax(Y_train, axis=-1)):
             model = create_model()
             model.fit(X_train[train], Y_train[train], epochs=epochs, batch_size=batch_size)
             save_model(fold, model)
