@@ -4,6 +4,9 @@ from keras import backend as K
 import tensorflow as tf
 from sklearn import svm
 from sklearn.ensemble import RandomForestClassifier
+from sklearn import tree
+from sklearn.neighbors import KNeighborsClassifier
+
 
 def load_cnn_model(yaml_path, weights_path):
     yaml_file = open(yaml_path, 'r')
@@ -45,19 +48,18 @@ if __name__ == "__main__":
             last_layer_index = 4
             lastlayer_output = functor([x_train, 1.])[last_layer_index]
 
-            # train SVM
-            clf = svm.SVC()
-            clf.fit(lastlayer_output.tolist(), y_train.tolist())
-
-            # Test SVM
             test_lastlayer = functor([x_test.tolist(), 1.])[last_layer_index]
-            test_results = clf.predict(test_lastlayer) == y_test
-            accuracy = numpy.average(clf.predict(test_lastlayer) == y_test) * 100
 
-            print("(SVM) Accuracy:", accuracy)
-
-            clf = RandomForestClassifier(n_estimators=100, max_depth=10, random_state = 0)
-            clf.fit(lastlayer_output.tolist(), y_train.tolist())
-            test_results = clf.predict(test_lastlayer) == y_test
-            accuracy = numpy.average(clf.predict(test_lastlayer) == y_test) * 100
-            print("(Random Forest) Accuracy:", accuracy)
+            classifiers = {
+                "SVM": svm.SVC(kernel='poly', decision_function_shape='ovo'),
+                "Random Forest": RandomForestClassifier(n_estimators=100, max_depth=10, random_state=0),
+                "Decision Tree": tree.DecisionTreeClassifier(),
+                "KNN": KNeighborsClassifier(n_neighbors=100)
+            }
+            print("*****  Fold {} *****".format(fold))
+            for name in classifiers:
+                clf = classifiers[name]
+                clf.fit(lastlayer_output.tolist(), y_train.tolist())
+                test_results = clf.predict(test_lastlayer) == y_test
+                accuracy = numpy.average(clf.predict(test_lastlayer) == y_test) * 100
+                print("Accuracy{}:".format(name), accuracy)
