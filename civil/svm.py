@@ -7,6 +7,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn import tree
 from sklearn.neighbors import KNeighborsClassifier
 
+from civil.tsne import visualize_scatter
+
 
 def load_cnn_model(yaml_path, weights_path):
     yaml_file = open(yaml_path, 'r')
@@ -47,7 +49,7 @@ if __name__ == "__main__":
 
             last_layer_index = 4
             lastlayer_output = functor([x_train, 1.])[last_layer_index]
-
+            visualize_scatter(lastlayer_output,y_train, dict([ (i, "Class"+str(i)) for i in numpy.unique(y_train)]))
             test_lastlayer = functor([x_test.tolist(), 1.])[last_layer_index]
 
             classifiers = {
