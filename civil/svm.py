@@ -49,7 +49,8 @@ if __name__ == "__main__":
 
             last_layer_index = 4
             lastlayer_output = functor([x_train, 1.])[last_layer_index]
-            visualize_scatter(lastlayer_output,y_train, dict([ (i, "Class"+str(i)) for i in numpy.unique(y_train)]))
+            visualize_scatter(lastlayer_output, y_train, dict([(i, "Class" + str(i)) for i in numpy.unique(y_train)]),
+                              save_as="fold_{}.png".format(fold))
             test_lastlayer = functor([x_test.tolist(), 1.])[last_layer_index]
 
             classifiers = {
